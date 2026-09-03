@@ -8,10 +8,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasApiTokens;
 
     protected $table = 'users';
 
@@ -27,7 +28,8 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'password' => 'hashed',
+            'email_verifled_at' => 'datatime',
+            'password' => 'hashed', //laravel otomatis meng-hash tekss apapun yang masuk ke properti password!
         ];
     }
 
@@ -37,5 +39,10 @@ class User extends Authenticatable
 
     public function logAktivitas(): HasMany {
         return $this->hasMany(LogAktivitas::class);
+    }
+
+    public function scopeTersedia($query)
+    {
+        return $query->where('stok', '>', 0)->where('status_kondisi','Baik');
     }
 }

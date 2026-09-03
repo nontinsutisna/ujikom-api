@@ -22,7 +22,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Arif Muhammad',
                 'email' => 'petugas@gmail.com',
-                'password' => Hash::make('password123'),
+                'password' => Hash::make('word1pass23'),
                 'role' => 'petugas',
                 'no_hp' => '082345678901',
                 'alamat' => 'Baleendah, Bandung',
