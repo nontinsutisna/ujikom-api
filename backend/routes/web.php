@@ -6,11 +6,12 @@ use App\Http\Controllers\PetugasController;
 use App\Http\Controllers\PeminjamController;
 use App\Http\Controllers\AuthController;
 
+// Halaman Utama
 Route::get('/', function () {
     return view('welcome');
 });
 
-//admin
+// Admin
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
 
@@ -42,27 +43,39 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/peminjaman', [AdminController::class, 'indexPeminjaman'])->name('peminjaman.index');
     Route::get('/peminjaman/create', [AdminController::class, 'createPeminjaman'])->name('peminjaman.create');
     Route::post('/peminjaman', [AdminController::class, 'storePeminjaman'])->name('peminjaman.store');
-    Route::put('/peminjaman/{id}/status', [AdminController::class, 'updateStatusPeminjaman'])->name('peminjaman.updateStatus');
+    Route::match(['put', 'patch'], '/peminjaman/{id}/status', [AdminController::class, 'updateStatusPeminjaman'])->name('peminjaman.updateStatus');
     Route::delete('/peminjaman/{id}', [AdminController::class, 'destroyPeminjaman'])->name('peminjaman.destroy');
 
-    //CRUD Pengembalian
+    // CRUD Pengembalian
     Route::get('/pengembalian', [AdminController::class, 'indexPengembalian'])->name('pengembalian.index');
     Route::get('/pengembalian/create', [AdminController::class, 'createPengembalian'])->name('pengembalian.create');
     Route::post('/pengembalian', [AdminController::class, 'storePengembalian'])->name('pengembalian.store');
     Route::delete('/pengembalian/{id}', [AdminController::class, 'destroyPengembalian'])->name('pengembalian.destroy');
 });
 
-//petugas
+// Petugas
 Route::middleware(['auth', 'role:petugas,admin'])->prefix('petugas')->name('petugas.')->group(function () {
     // Peminjaman & Persetujuan
     Route::get('/peminjaman', [PetugasController::class, 'indexPeminjaman'])->name('peminjaman.index');
     Route::post('/peminjaman/{id}/setujui', [PetugasController::class, 'setujuiPeminjaman'])->name('peminjaman.setujui');
+    Route::delete('/peminjaman/{id}/tolak', [PetugasController::class, 'tolakPeminjaman'])->name('peminjaman.tolak');
 
     // Pengembalian & Denda
     Route::post('/pengembalian/{id}', [PetugasController::class, 'prosesPengembalian'])->name('pengembalian.proses');
+    Route::get('/pengembalian', [PetugasController::class, 'indexPengembalian'])->name('pengembalian.index');
+
+    // Tambahkan route ini untuk Cetak Laporan:
+    Route::get('/laporan', [PetugasController::class, 'indexLaporan'])->name('laporan.index');
+    Route::get('/laporan/cetak', [PetugasController::class, 'cetakLaporan'])->name('laporan.cetak');
+
+    // Mengizinkan admin dan petugas mengakses route create/store
+    Route::middleware(['auth', 'role:admin,petugas'])->group(function () {
+    Route::get('/admin/peminjaman/create', [AdminController::class, 'createPeminjaman'])->name('admin.peminjaman.create');
+    Route::post('/admin/peminjaman', [AdminController::class, 'storePeminjaman'])->name('admin.peminjaman.store');
+});
 });
 
-//peminjam
+// Peminjam
 Route::middleware(['auth', 'role:peminjam'])->prefix('peminjam')->name('peminjam.')->group(function () {
     // Katalog & Pengajuan
     Route::get('/katalog', [PeminjamController::class, 'katalogAlat'])->name('katalog');
@@ -78,3 +91,14 @@ Route::middleware('guest')->group(function () {
 
 // Route Logout (Harus sudah login)
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
+
+// Pengarah /dashboard untuk pengguna yang sudah login
+Route::get('/dashboard', function () {
+    if (auth()->check()) {
+        $role = auth()->user()->role;
+        if ($role === 'admin') return redirect()->route('admin.dashboard');
+        if ($role === 'petugas') return redirect()->route('petugas.peminjaman.index');
+        if ($role === 'peminjam') return redirect()->route('peminjam.katalog');
+    }
+    return redirect()->route('login');
+});

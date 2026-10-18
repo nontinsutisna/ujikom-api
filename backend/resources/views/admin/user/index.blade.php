@@ -4,13 +4,6 @@
 @section('header-title', 'Manajemen Pengguna Sistem')
 
 @section('content')
-    <!-- Notifikasi Sukses/Gagal -->
-    @if(session('success'))
-        <div class="mb-4 bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-lg shadow-sm text-sm">
-            {{ session('success') }}
-        </div>
-    @endif
-
     <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
         
         <!-- HEADER AWAL -->
@@ -39,7 +32,6 @@
                 </a>
             </div>
         </div> 
-        <!-- HEADER AKHIR (Ini div penutup yang sebelumnya hilang) -->
 
         <!-- TABEL -->
         <div class="overflow-x-auto">
@@ -74,11 +66,11 @@
                                         Edit
                                     </a>
 
-                                    <!-- Tombol Hapus -->
-                                    <form action="{{ route('admin.user.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus user ini?')">
+                                    <!-- Form & Tombol Hapus dengan SweetAlert -->
+                                    <form id="delete-form-{{ $user->id }}" action="{{ route('admin.user.destroy', $user->id) }}" method="POST">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-xs font-semibold transition">
+                                        <button type="button" onclick="confirmDelete({{ $user->id }})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-xs font-semibold transition">
                                             Hapus
                                         </button>
                                     </form>
@@ -98,4 +90,24 @@
             {{ $users->links() }}
         </div>
     </div>
+
+    <!-- Script SweetAlert Konfirmasi Hapus -->
+    <script>
+        function confirmDelete(id) {
+            Swal.fire({
+                title: 'Apakah Anda yakin?',
+                text: "Data pengguna yang dihapus tidak dapat dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('delete-form-' + id).submit();
+                }
+            });
+        }
+    </script>
 @endsection

@@ -4,10 +4,10 @@
 @section('header-title', 'Manajemen Data Alat')
 
 @section('content')
-    <!-- Notifikasi Sukses / Error -->
-    @if(session('success'))
-        <div class="mb-4 bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-lg shadow-sm text-sm">
-            {{ session('success') }}
+    <!-- Notifikasi Error (Contoh jika alat gagal dihapus karena masih ada transaksi) -->
+    @if(session('error'))
+        <div class="mb-4 bg-red-50 border border-red-200 text-red-800 p-4 rounded-lg shadow-sm text-sm">
+            {{ session('error') }}
         </div>
     @endif
 
@@ -81,12 +81,11 @@
                                         Edit
                                     </a>
 
-                                    <!-- Tombol Hapus -->
-                                    <form action="{{ route('admin.alat.destroy', $alat->id) }}" method="POST" 
-                                        onsubmit="return confirm('Yakin ingin menghapus alat ini?')">
+                                    <!-- Form & Tombol Hapus dengan SweetAlert -->
+                                    <form id="delete-form-{{ $alat->id }}" action="{{ route('admin.alat.destroy', $alat->id) }}" method="POST">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-xs font-semibold transition">
+                                        <button type="button" onclick="confirmDelete({{ $alat->id }})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-xs font-semibold transition">
                                             Hapus
                                         </button>
                                     </form>
@@ -109,4 +108,24 @@
             </div>
         @endif
     </div>
+
+    <!-- Script SweetAlert Konfirmasi Hapus -->
+    <script>
+        function confirmDelete(id) {
+            Swal.fire({
+                title: 'Apakah Anda yakin?',
+                text: "Data alat yang dihapus tidak dapat dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('delete-form-' + id).submit();
+                }
+            });
+        }
+    </script>
 @endsection

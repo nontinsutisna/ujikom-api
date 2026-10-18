@@ -4,12 +4,7 @@
 @section('header-title', 'Manajemen Kategori Alat')
 
 @section('content')
-    <!-- Notifikasi Sukses / Error -->
-    @if(session('success'))
-        <div class="mb-4 bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-lg shadow-sm text-sm">
-            {{ session('success') }}
-        </div>
-    @endif
+    <!-- Notifikasi Error (Contoh jika kategori masih terikat dengan data alat) -->
     @if(session('error'))
         <div class="mb-4 bg-red-50 border border-red-200 text-red-800 p-4 rounded-lg shadow-sm text-sm">
             {{ session('error') }}
@@ -72,12 +67,11 @@
                                         Edit
                                     </a>
 
-                                    <!-- Tombol Hapus -->
-                                    <form action="{{ route('admin.kategori.destroy', $item->id) }}" method="POST"
-                                        onsubmit="return confirm('Yakin ingin menghapus kategori ini?')">
+                                    <!-- Form & Tombol Hapus dengan SweetAlert -->
+                                    <form id="delete-form-{{ $item->id }}" action="{{ route('admin.kategori.destroy', $item->id) }}" method="POST">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit"
+                                        <button type="button" onclick="confirmDelete({{ $item->id }})"
                                             class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-xs font-semibold transition">
                                             Hapus
                                         </button>
@@ -99,4 +93,24 @@
             {{ $kategori->links() }}
         </div>
     </div>
+
+    <!-- Script SweetAlert Konfirmasi Hapus -->
+    <script>
+        function confirmDelete(id) {
+            Swal.fire({
+                title: 'Apakah Anda yakin?',
+                text: "Kategori yang dihapus tidak dapat dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('delete-form-' + id).submit();
+                }
+            });
+        }
+    </script>
 @endsection

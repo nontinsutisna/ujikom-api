@@ -55,14 +55,14 @@
                     </tr>
                 </thead>
                 <tbody class="text-gray-700 text-sm">
-                    @forelse($peminjaman as $item)
+                    @forelse($peminjamans as $item)
                         <tr class="hover:bg-gray-50 transition align-top">
                             <td class="py-3 px-4 border-b font-medium text-gray-900">
                                 {{ $item->user->name ?? 'User Dihapus' }}
                             </td>
                             <td class="py-3 px-4 border-b">
                                 <ul class="list-disc list-inside space-y-1">
-                                    @foreach($item->detailPinjam as $detail)
+                                    @foreach($item->detailPinjams as $detail)
                                         <li>
                                             <span class="font-semibold">{{ $detail->alat->nama_alat ?? 'Alat Dihapus' }}</span>
                                             <span class="text-xs bg-gray-200 px-1.5 py-0.5 rounded">({{ $detail->jumlah }} pcs)</span>
@@ -71,14 +71,14 @@
                                 </ul>
                             </td>
                             <td class="py-3 px-4 border-b text-xs text-gray-600">
-                                <span class="block">Pinjam: {{ $item->tgl_pinjam }}</span>
-                                <span class="block font-semibold">Rencana: {{ $item->tgl_kembali_plan }}</span>
+                                <span class="block">Pinjam: {{ $item->tgl_pinjam ?? $item->tanggal_pinjam }}</span>
+                                <span class="block font-semibold">Rencana: {{ $item->tgl_kembali_plan ?? $item->tanggal_kembali }}</span>
                             </td>
                             <td class="py-3 px-4 border-b">
                                 <span class="px-2.5 py-1 text-xs font-semibold rounded-full 
-                                    @if($item->status == 'diajukan') bg-yellow-100 text-yellow-800
-                                    @elseif($item->status == 'dipinjam') bg-blue-100 text-blue-800
-                                    @elseif($item->status == 'Dikembalikan') bg-emerald-100 text-emerald-800
+                                    @if(strtolower($item->status) == 'diajukan') bg-yellow-100 text-yellow-800
+                                    @elseif(strtolower($item->status) == 'dipinjam') bg-blue-100 text-blue-800
+                                    @elseif(strtolower($item->status) == 'selesai' || strtolower($item->status) == 'dikembalikan') bg-emerald-100 text-emerald-800
                                     @else bg-red-100 text-red-800 @endif">
                                     {{ ucfirst($item->status) }}
                                 </span>
@@ -88,12 +88,13 @@
                                     <!-- Form Ubah Status Cepat -->
                                     <form action="{{ route('admin.peminjaman.updateStatus', $item->id) }}" method="POST" class="flex items-center space-x-1">
                                         @csrf
-                                        @method('PUT')
-                                        <select name="status" onchange="this.form.submit()" class="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none">
-                                            <option value="diajukan" {{ $item->status == 'diajukan' ? 'selected' : '' }}>Diajukan</option>
-                                            <option value="dipinjam" {{ $item->status == 'dipinjam' ? 'selected' : '' }}>Dipinjam</option>
-                                            <option value="Dikembalikan" {{ $item->status == 'dikembalikan' ? 'selected' : '' }}>Dikembalikan</option>
-                                            <option value="telat" {{ $item->status == 'telat' ? 'selected' : '' }}>Telat</option>
+                                        @method('PATCH')
+                                        <select name="status" onchange="this.form.submit()" class="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none bg-gray-50 shadow-sm cursor-pointer">
+                                            <!-- PERBAIKAN: value diubah menjadi huruf kecil (diajukan, dipinjam, dikembalikan, telat) -->
+                                            <option value="diajukan" {{ strtolower($item->status) == 'diajukan' ? 'selected' : '' }}>Diajukan</option>
+                                            <option value="dipinjam" {{ strtolower($item->status) == 'dipinjam' ? 'selected' : '' }}>Dipinjam</option>
+                                            <option value="dikembalikan" {{ in_array(strtolower($item->status), ['selesai', 'dikembalikan']) ? 'selected' : '' }}>Selesai / Dikembalikan</option>
+                                            <option value="telat" {{ strtolower($item->status) == 'telat' ? 'selected' : '' }}>Telat</option>
                                         </select>
                                     </form>
 
@@ -119,10 +120,11 @@
         </div>
 
         <!-- Pagination -->
-        @if($peminjaman->hasPages())
+        @if($peminjamans->hasPages())
             <div class="p-4 border-t border-gray-200 bg-gray-50">
-                {{ $peminjaman->links() }}
+                {{ $peminjamans->links() }}
             </div>
         @endif
     </div>
+    
 @endsection
