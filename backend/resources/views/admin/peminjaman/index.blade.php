@@ -4,23 +4,12 @@
 @section('header-title', 'Manajemen Transaksi Peminjaman')
 
 @section('content')
-    @if(session('success'))
-        <div class="mb-4 bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-lg shadow-sm text-sm">
-            {{ session('success') }}
-        </div>
-    @endif
-    @if(session('error'))
-        <div class="mb-4 bg-red-50 border border-red-200 text-red-800 p-4 rounded-lg shadow-sm text-sm">
-            {{ session('error') }}
-        </div>
-    @endif
-
     <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
         <div class="p-5 border-b border-gray-200 bg-gray-50 flex flex-col md:flex-row justify-between items-center gap-4">
             <h3 class="text-lg font-bold text-gray-800">Daftar Transaksi Peminjaman</h3>
 
             <div class="flex items-center gap-3 w-full md:w-auto">
-                <!-- Form Search -->
+                <!-- Form Search Admin -->
                 <form action="{{ route('admin.peminjaman.index') }}" method="GET" class="flex w-full md:w-80">
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama peminjam / status..."
                         class="w-full px-3 py-2 text-sm border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -35,7 +24,7 @@
                     @endif
                 </form>
 
-                <!-- Tombol Tambah -->
+                <!-- Tombol Tambah Peminjaman Admin -->
                 <a href="{{ route('admin.peminjaman.create') }}"
                     class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition whitespace-nowrap">
                     + Tambah Peminjaman
@@ -51,7 +40,7 @@
                         <th class="py-3 px-4 border-b">Alat yang Dipinjam</th>
                         <th class="py-3 px-4 border-b">Tgl Pinjam / Rencana Kembali</th>
                         <th class="py-3 px-4 border-b">Status</th>
-                        <th class="py-3 px-4 border-b">Aksi</th>
+                        <th class="py-3 px-4 border-b text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="text-gray-700 text-sm">
@@ -65,7 +54,7 @@
                                     @foreach($item->detailPinjams as $detail)
                                         <li>
                                             <span class="font-semibold">{{ $detail->alat->nama_alat ?? 'Alat Dihapus' }}</span>
-                                            <span class="text-xs bg-gray-200 px-1.5 py-0.5 rounded">({{ $detail->jumlah }} pcs)</span>
+                                            <span class="text-xs bg-gray-200 px-1.5 py-0.5 rounded text-gray-700">({{ $detail->jumlah }} pcs)</span>
                                         </li>
                                     @endforeach
                                 </ul>
@@ -78,32 +67,32 @@
                                 <span class="px-2.5 py-1 text-xs font-semibold rounded-full 
                                     @if(strtolower($item->status) == 'diajukan') bg-yellow-100 text-yellow-800
                                     @elseif(strtolower($item->status) == 'dipinjam') bg-blue-100 text-blue-800
-                                    @elseif(strtolower($item->status) == 'selesai' || strtolower($item->status) == 'dikembalikan') bg-emerald-100 text-emerald-800
+                                    @elseif(in_array(strtolower($item->status), ['selesai', 'dikembalikan'])) bg-emerald-100 text-emerald-800
                                     @else bg-red-100 text-red-800 @endif">
                                     {{ ucfirst($item->status) }}
                                 </span>
                             </td>
-                            <td class="py-3 px-4 border-b">
-                                <div class="flex flex-col space-y-2">
-                                    <!-- Form Ubah Status Cepat -->
-                                    <form action="{{ route('admin.peminjaman.updateStatus', $item->id) }}" method="POST" class="flex items-center space-x-1">
+                            <td class="py-3 px-4 border-b text-center">
+                                <div class="flex flex-col items-center space-y-2">
+                                    <!-- Dropdown Status Cepat Admin -->
+                                    <form action="{{ route('admin.peminjaman.updateStatus', $item->id) }}" method="POST" class="w-full">
                                         @csrf
                                         @method('PATCH')
-                                        <select name="status" onchange="this.form.submit()" class="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none bg-gray-50 shadow-sm cursor-pointer">
-                                            <!-- PERBAIKAN: value diubah menjadi huruf kecil (diajukan, dipinjam, dikembalikan, telat) -->
+                                        <select name="status" onchange="this.form.submit()" 
+                                            class="w-full text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none bg-white shadow-sm cursor-pointer">
                                             <option value="diajukan" {{ strtolower($item->status) == 'diajukan' ? 'selected' : '' }}>Diajukan</option>
                                             <option value="dipinjam" {{ strtolower($item->status) == 'dipinjam' ? 'selected' : '' }}>Dipinjam</option>
-                                            <option value="dikembalikan" {{ in_array(strtolower($item->status), ['selesai', 'dikembalikan']) ? 'selected' : '' }}>Selesai / Dikembalikan</option>
+                                            <option value="selesai" {{ in_array(strtolower($item->status), ['dikembalikan', 'selesai']) ? 'selected' : '' }}>Selesai</option>
                                             <option value="telat" {{ strtolower($item->status) == 'telat' ? 'selected' : '' }}>Telat</option>
                                         </select>
                                     </form>
 
-                                    <!-- Tombol Hapus -->
-                                    <form action="{{ route('admin.peminjaman.destroy', $item->id) }}" method="POST" 
-                                        onsubmit="return confirm('Yakin ingin menghapus data peminjaman ini?')">
+                                    <!-- Tombol Hapus Merah Admin -->
+                                    <form id="delete-form-{{ $item->id }}" action="{{ route('admin.peminjaman.destroy', $item->id) }}" method="POST" class="w-full">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs font-semibold transition w-full">
+                                        <button type="button" onclick="confirmDelete({{ $item->id }})" 
+                                            class="w-full bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs font-semibold transition shadow-sm">
                                             Hapus
                                         </button>
                                     </form>
@@ -119,12 +108,57 @@
             </table>
         </div>
 
-        <!-- Pagination -->
         @if($peminjamans->hasPages())
             <div class="p-4 border-t border-gray-200 bg-gray-50">
                 {{ $peminjamans->links() }}
             </div>
         @endif
     </div>
-    
+
+    <!-- SweetAlert2 Modal -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        @if(session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: "{{ session('success') }}",
+                timer: 3000,
+                showConfirmButton: false
+            });
+        @endif
+
+        @if(session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                text: "{{ session('error') }}",
+                timer: 3000,
+                showConfirmButton: false
+            });
+        @endif
+
+        function confirmDelete(id) {
+            Swal.fire({
+                title: 'Apakah Anda yakin?',
+                text: "Data peminjaman ini akan dihapus secara permanen!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal',
+                customClass: {
+                    popup: 'rounded-xl',
+                    confirmButton: 'px-4 py-2 text-sm font-semibold text-white rounded-lg',
+                    cancelButton: 'px-4 py-2 text-sm font-semibold text-white rounded-lg'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('delete-form-' + id).submit();
+                }
+            });
+        }
+    </script>
 @endsection

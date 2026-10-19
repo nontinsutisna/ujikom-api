@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <title>@yield('title', 'Dashboard - Peminjaman Alat')</title>
+
     <!-- Memuat Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Memuat SweetAlert2 CDN untuk Pop-up Cantik -->
@@ -74,7 +77,7 @@
                         Pemantauan Pengembalian
                     </a>
 
-                    <!-- Cetak Laporan (Disesuaikan persis dengan Modul Langkah 5) -->
+                    <!-- Cetak Laporan -->
                     <a href="{{ route('petugas.laporan.index') }}"
                        class="block px-4 py-2 rounded-lg transition {{ request()->routeIs('petugas.laporan*') ? 'bg-gray-800 text-white font-medium shadow' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
                         Cetak Laporan
@@ -112,7 +115,7 @@
                     @yield('header-title', 'Dashboard')
                 </div>
                 <div>
-                    <!-- FORM LOGOUT -->
+                    <!-- FORM LOGOUT METODE POST LENGKAP @CSRF -->
                     <form id="logout-form" action="{{ route('logout') }}" method="POST">
                         @csrf
                         <button type="button" onclick="klikLogout()" class="bg-red-500 hover:bg-red-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition shadow-sm">

@@ -87,6 +87,7 @@ class AdminController extends Controller
     {
         $alat = Alat::findOrFail($id);
         $kategori = Kategori::all();
+
         return view('admin.alat.edit', compact('alat', 'kategori'));
     }
 
@@ -355,7 +356,6 @@ class AdminController extends Controller
     {
         $search = $request->input('search');
 
-        // PERBAIKAN: detailPinjam diubah ke detailPinjams
         $peminjamans = Peminjaman::with(['user', 'detailPinjams.alat'])
             ->when($search, function ($query, $search) {
                 return $query->where('status', 'like', "%{$search}%")
@@ -367,7 +367,8 @@ class AdminController extends Controller
             ->paginate(8)
             ->withQueryString();
 
-        return view('petugas.peminjaman.index', compact('peminjamans', 'search'));
+        // PERBAIKAN: Diubah dari 'petugas.peminjaman.index' menjadi 'admin.peminjaman.index'
+        return view('admin.peminjaman.index', compact('peminjamans', 'search'));
     }
 
     // 2. Menampilkan form tambah peminjaman
@@ -432,7 +433,6 @@ class AdminController extends Controller
     // 4. Memperbarui status peminjaman
     public function updateStatusPeminjaman(Request $request, $id)
     {
-        // PERBAIKAN: detailPinjam diubah ke detailPinjams
         $peminjaman = Peminjaman::with('detailPinjams.alat')->findOrFail($id);
 
         $request->validate([
@@ -454,8 +454,7 @@ class AdminController extends Controller
                 return redirect()->route('admin.peminjaman.index')->with('info', 'Status peminjaman tidak berubah.');
             }
 
-            // 1. Kondisi saat barang MUALI DIPINJAM / TELAT (stok dikurangi)
-            // Terjadi jika status lama belum mengurangi stok (misal: 'diajukan') dan diubah ke 'dipinjam' atau 'telat'
+            // 1. Kondisi saat barang MULAI DIPINJAM / TELAT (stok dikurangi)
             if ($statusLama === 'diajukan' && in_array($statusBaru, ['dipinjam', 'telat'])) {
                 foreach ($peminjaman->detailPinjams as $detail) {
                     $alat = $detail->alat;
@@ -467,7 +466,6 @@ class AdminController extends Controller
             }
 
             // 2. Kondisi saat barang DIKEMBALIKAN (stok ditambahkan kembali)
-            // Terjadi jika status lama sedang aktif meminjam ('dipinjam' / 'telat') dan diubah ke 'dikembalikan'
             if (in_array($statusLama, ['dipinjam', 'telat']) && $statusBaru === 'dikembalikan') {
                 foreach ($peminjaman->detailPinjams as $detail) {
                     $detail->alat->increment('stok', $detail->jumlah);
@@ -475,7 +473,6 @@ class AdminController extends Controller
             }
 
             // 3. Kondisi dibatalkan / dikembalikan ke 'diajukan' saat barang sedang dipinjam
-            // Kembalikan stok yang sempat dikurangi sebelumnya
             if (in_array($statusLama, ['dipinjam', 'telat']) && $statusBaru === 'diajukan') {
                 foreach ($peminjaman->detailPinjams as $detail) {
                     $detail->alat->increment('stok', $detail->jumlah);
@@ -498,10 +495,10 @@ class AdminController extends Controller
             return back()->with('error', $e->getMessage());
         }
     }
+
     // 5. Menghapus data peminjaman
     public function destroyPeminjaman($id)
     {
-        // PERBAIKAN: detailPinjam diubah ke detailPinjams
         $peminjaman = Peminjaman::with('detailPinjams')->findOrFail($id);
         $peminjamanId = $peminjaman->id;
 
@@ -527,7 +524,6 @@ class AdminController extends Controller
     {
         $search = $request->input('search');
 
-        // PERBAIKAN: detailPinjam diubah ke detailPinjams
         $pengembalian = Pengembalian::with(['peminjaman.user', 'peminjaman.detailPinjams.alat', 'petugas'])
             ->when($search, function ($query, $search) {
                 return $query->where('kondisi_kembali', 'like', "%{$search}%")
@@ -565,7 +561,6 @@ class AdminController extends Controller
 
         DB::beginTransaction();
         try {
-            // PERBAIKAN: detailPinjam diubah ke detailPinjams
             $peminjaman = Peminjaman::with('detailPinjams.alat')->findOrFail($request->peminjaman_id);
 
             // Hitung keterlambatan otomatis (dalam hari)

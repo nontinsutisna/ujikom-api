@@ -81,6 +81,22 @@ Route::middleware(['auth', 'role:peminjam'])->prefix('peminjam')->name('peminjam
     Route::get('/katalog', [PeminjamController::class, 'katalogAlat'])->name('katalog');
     Route::post('/peminjaman/ajukan', [PeminjamController::class, 'ajukanPeminjaman'])->name('peminjaman.ajukan');
     Route::get('/riwayat', [PeminjamController::class, 'riwayatPeminjaman'])->name('riwayat');
+
+    // Route Register Peminjam
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register'])->name('register.post');
+
+    // Peminjam (Siswa)
+    Route::middleware(['auth', 'role:peminjam'])->prefix('peminjam')->name('peminjam.')->group(function () {
+        // 1. Melihat daftar alat (Katalog)
+    Route::get('/katalog', [PeminjamController::class, 'katalogAlat'])->name('katalog');
+    
+    // 2. Mengajukan peminjaman
+    Route::post('/pinjam', [PeminjamController::class, 'ajukanPeminjaman'])->name('pinjam.store');
+    
+    // 3. Mengembalikan alat (Melihat Riwayat Peminjaman & Status Pengembalian)
+    Route::get('/riwayat', [PeminjamController::class, 'riwayatPeminjaman'])->name('riwayat');
+});
 });
 
 // Route Tamu (Belum Login)
@@ -91,6 +107,10 @@ Route::middleware('guest')->group(function () {
 
 // Route Logout (Harus sudah login)
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
+
+// Route Auth Register
+Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
+Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 
 // Pengarah /dashboard untuk pengguna yang sudah login
 Route::get('/dashboard', function () {
